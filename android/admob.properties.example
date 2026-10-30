@@ -1,0 +1,3 @@
+# Copy to android/admob.properties (gitignored).
+# Use Google's test App ID for debug. Replace with this app's AdMob Android App ID for store builds.
+appId=ca-app-pub-3940256099942544~3347511713
