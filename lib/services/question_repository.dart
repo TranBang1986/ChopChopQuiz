@@ -20,10 +20,23 @@ class QuestionRepository {
   Future<void> load() async {
     final raw = await rootBundle.loadString('assets/data/questions.json');
     final data = jsonDecode(raw) as Map<String, dynamic>;
+    for (final list in _byDiff.values) {
+      list.clear();
+    }
     for (final j in data['questions'] as List) {
       final q = Question.fromJson(j as Map<String, dynamic>);
       (_byDiff[q.difficulty] ??= []).add(q);
     }
+  }
+
+  int countForTopic(String? topicFilter) {
+    var n = 0;
+    for (final list in _byDiff.values) {
+      for (final q in list) {
+        if (topicFilter == null || q.topic == topicFilter) n++;
+      }
+    }
+    return n;
   }
 
   /// Độ khó tăng dần theo số sao (trộn lẫn để không đơn điệu).
@@ -43,19 +56,33 @@ class QuestionRepository {
     return 'medium';
   }
 
-  Question next(int stars, {String? lastTopic}) {
+  List<Question> _poolFor(String difficulty, String? topicFilter) {
+    final all = _byDiff[difficulty] ?? const <Question>[];
+    if (topicFilter == null) return all;
+    return all.where((q) => q.topic == topicFilter).toList();
+  }
+
+  Question next(int stars, {String? lastTopic, String? topicFilter}) {
     var diff = _pickDifficulty(stars);
-    if ((_byDiff[diff] ?? []).isEmpty) {
-      diff = _order.firstWhere((d) => (_byDiff[d] ?? []).isNotEmpty);
+    var all = _poolFor(diff, topicFilter);
+    if (all.isEmpty) {
+      diff = _order.firstWhere(
+        (d) => _poolFor(d, topicFilter).isNotEmpty,
+        orElse: () => 'medium',
+      );
+      all = _poolFor(diff, topicFilter);
     }
-    final all = _byDiff[diff]!;
+    if (all.isEmpty) {
+      // Fallback an toàn nếu lọc chủ đề trống.
+      all = _byDiff.values.expand((e) => e).toList();
+    }
     var pool = all.where((q) => !_used.contains(q.id)).toList();
     if (pool.isEmpty) {
-      _used.removeAll(all.map((q) => q.id)); // hết câu thì xoay vòng lại
+      _used.removeAll(all.map((q) => q.id));
       pool = List.of(all);
     }
     var candidates = pool.where((q) => q.topic != lastTopic).toList();
-    if (candidates.isEmpty) candidates = pool; // tránh 2 câu liền cùng chủ đề
+    if (candidates.isEmpty) candidates = pool;
     final q = candidates[_rand.nextInt(candidates.length)];
     _used.add(q.id);
     return q.shuffled(_rand);

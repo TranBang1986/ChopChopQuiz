@@ -10,12 +10,14 @@ class HowToPlayScreen extends StatelessWidget {
   const HowToPlayScreen({super.key});
 
   static const _rules = [
+    ('⚡', 'Chọn Tổng hợp để chơi mọi chủ đề — chỉ chế độ này mới lên bảng xếp hạng.'),
+    ('📚', 'Hoặc chọn 1 trong 14 chủ đề để luyện riêng; sao chủ đề chỉ lưu trên máy.'),
     ('⏱️', 'Mỗi lượt chơi có 120 giây. Trả lời càng nhanh càng tốt!'),
     ('⭐', 'Trả lời đúng: được +1 sao.'),
     ('💥', 'Trả lời sai: số sao quay về mức ban đầu (0 sao).'),
-    ('📈', 'Càng nhiều sao, câu hỏi càng khó và đủ mọi chủ đề.'),
+    ('📈', 'Càng nhiều sao, câu hỏi càng khó.'),
     ('🎬', 'Trước khi bắt đầu, xem 1 video để được +5 giây (1 lần mỗi lượt).'),
-    ('🏆', 'Điểm của bạn là số sao cao nhất trong lượt chơi. Lên bảng xếp hạng nào!'),
+    ('🏆', 'Điểm Tổng hợp là số sao cao nhất trong lượt — lên Game Center / Play Games!'),
   ];
 
   @override

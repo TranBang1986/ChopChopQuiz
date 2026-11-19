@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../config/quiz_modes.dart';
 import '../models.dart';
 import '../services/ad_service.dart';
 import '../services/audio_service.dart';
@@ -13,7 +14,8 @@ import '../ui.dart';
 enum Phase { ready, playing, over }
 
 class PlayScreen extends StatefulWidget {
-  const PlayScreen({super.key});
+  final QuizMode mode;
+  const PlayScreen({super.key, required this.mode});
 
   @override
   State<PlayScreen> createState() => _PlayScreenState();
@@ -28,14 +30,17 @@ class _PlayScreenState extends State<PlayScreen> {
   Phase phase = Phase.ready;
   int remaining = baseSeconds;
   bool bonusUsed = false;
-  int stars = 0; // sao hiện tại
-  int peak = 0; // sao cao nhất = điểm
+  int stars = 0;
+  int peak = 0;
   int correct = 0;
   Question? q;
   int? picked;
   bool locked = false;
   String? _lastTopic;
   Timer? _timer;
+
+  QuizMode get mode => widget.mode;
+  int get modeBest => StatsService.instance.bestFor(mode.id);
 
   @override
   void initState() {
@@ -50,7 +55,6 @@ class _PlayScreenState extends State<PlayScreen> {
     super.dispose();
   }
 
-  // ---------------- Game flow ----------------
   void _start() {
     AudioService.instance.start();
     AudioService.instance.playMusic(MusicTrack.game);
@@ -82,7 +86,11 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   void _nextQuestion() {
-    q = _repo.next(stars, lastTopic: _lastTopic);
+    q = _repo.next(
+      stars,
+      lastTopic: _lastTopic,
+      topicFilter: mode.topicFilter,
+    );
     _lastTopic = q!.topic;
   }
 
@@ -102,7 +110,7 @@ class _PlayScreenState extends State<PlayScreen> {
         correct++;
         if (stars > peak) peak = stars;
       } else {
-        stars = 0; // sai -> về mức ban đầu
+        stars = 0;
       }
     });
     await Future.delayed(Duration(milliseconds: ok ? 450 : 900));
@@ -118,12 +126,13 @@ class _PlayScreenState extends State<PlayScreen> {
     if (phase == Phase.over) return;
     _timer?.cancel();
     setState(() => phase = Phase.over);
-    final isRecord = peak > 0 && peak >= StatsService.instance.best;
+    final isRecord = peak > 0 && peak >= modeBest;
     AudioService.instance.finish(record: isRecord);
     AudioService.instance.playMusic(MusicTrack.menu);
-    final plays = await StatsService.instance.addPlay(peak);
-    LeaderboardService.submit(peak);
-    // Interstitial sau mỗi 5 lượt chơi kết thúc.
+    final plays = await StatsService.instance.addPlay(peak, mode: mode);
+    if (mode.ranksOnLeaderboard) {
+      LeaderboardService.submit(peak);
+    }
     if (plays % 5 == 0) {
       await AudioService.instance.pauseForAd();
       await AdService.instance.showInterstitial();
@@ -172,7 +181,7 @@ class _PlayScreenState extends State<PlayScreen> {
       Navigator.of(context).pop();
       return;
     }
-    _timer?.cancel(); // tạm dừng khi hỏi
+    _timer?.cancel();
     final leave = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -195,7 +204,7 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   void _showResult() {
-    final isRecord = peak > 0 && peak >= StatsService.instance.best;
+    final isRecord = peak > 0 && peak >= modeBest;
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -207,8 +216,12 @@ class _PlayScreenState extends State<PlayScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Mascot(size: 90),
-              const SizedBox(height: 6),
+              Text(mode.emoji, style: const TextStyle(fontSize: 48)),
+              const SizedBox(height: 4),
+              Text(mode.title,
+                  style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w800, color: mode.color)),
+              const SizedBox(height: 4),
               const Text('Hết giờ rồi!',
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: C.pinkDark)),
               Text('⭐ $peak',
@@ -222,8 +235,17 @@ class _PlayScreenState extends State<PlayScreen> {
                   child: Pill(text: '🎉 Kỷ lục mới!', color: C.mint, fontSize: 16),
                 )
               else
-                Text('Kỷ lục: ${StatsService.instance.best} ⭐',
+                Text('Kỷ lục ${mode.title}: $modeBest ⭐',
                     style: const TextStyle(fontSize: 16, color: C.ink)),
+              if (!mode.ranksOnLeaderboard)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Sao chủ đề chỉ lưu trên máy.\nChơi Tổng hợp để lên bảng xếp hạng.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: C.pinkDark),
+                  ),
+                ),
               const SizedBox(height: 18),
               CuteButton(
                 label: 'Chơi lại',
@@ -234,15 +256,17 @@ class _PlayScreenState extends State<PlayScreen> {
                   _reset();
                 },
               ),
-              const SizedBox(height: 12),
-              CuteButton(
-                label: '🏆 Bảng xếp hạng',
-                color: C.sky,
-                shadow: C.skyDark,
-                height: 50,
-                fontSize: 17,
-                onTap: () => LeaderboardService.show(),
-              ),
+              if (mode.ranksOnLeaderboard) ...[
+                const SizedBox(height: 12),
+                CuteButton(
+                  label: '🏆 Bảng xếp hạng',
+                  color: C.sky,
+                  shadow: C.skyDark,
+                  height: 50,
+                  fontSize: 17,
+                  onTap: () => LeaderboardService.show(),
+                ),
+              ],
               const SizedBox(height: 12),
               CuteButton(
                 label: 'Trang chủ',
@@ -260,7 +284,6 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  // ---------------- UI ----------------
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -313,15 +336,36 @@ class _PlayScreenState extends State<PlayScreen> {
   Widget _ready() {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Mascot(size: 130),
-            const SizedBox(height: 8),
-            const Text('Sẵn sàng chưa nào?',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: C.pinkDark)),
-            const SizedBox(height: 6),
+            Container(
+              width: 96,
+              height: 96,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: mode.color.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+                border: Border.all(color: mode.color, width: 3),
+              ),
+              child: Text(mode.emoji, style: const TextStyle(fontSize: 44)),
+            ),
+            const SizedBox(height: 12),
+            Text(mode.title,
+                style: TextStyle(
+                    fontSize: 30, fontWeight: FontWeight.w900, color: mode.color)),
+            const SizedBox(height: 4),
+            Text(
+              mode.ranksOnLeaderboard
+                  ? 'Mọi chủ đề · điểm lên bảng xếp hạng'
+                  : 'Sao chỉ lưu trên máy · luyện theo chủ đề',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: C.ink),
+            ),
+            const SizedBox(height: 10),
+            Pill(text: '🏆 Kỷ lục: $modeBest ⭐', color: mode.shadow, fontSize: 14),
+            const SizedBox(height: 16),
             Text(
               'Bạn có ${baseSeconds + (bonusUsed ? bonusSeconds : 0)} giây.\nĐúng +1 sao, sai về 0 sao!',
               textAlign: TextAlign.center,
@@ -423,8 +467,8 @@ class _PlayScreenState extends State<PlayScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: C.pink, width: 3),
-        boxShadow: const [BoxShadow(color: C.pinkDark, offset: Offset(0, 5))],
+        border: Border.all(color: mode.color, width: 3),
+        boxShadow: [BoxShadow(color: mode.shadow, offset: const Offset(0, 5))],
       ),
       child: Column(
         children: [
@@ -437,7 +481,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 constraints: BoxConstraints(
                   maxWidth: MediaQuery.sizeOf(context).width - 140,
                 ),
-                child: Pill(text: qu.topic, color: C.skyDark, fontSize: 13),
+                child: Pill(text: qu.topic, color: mode.shadow, fontSize: 13),
               ),
               Pill(text: diff, color: C.pink, fontSize: 13),
             ],

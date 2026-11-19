@@ -13,7 +13,7 @@ flutter run
 - iOS: `com.tranbang.chopChopQuiz`
 - Android: `com.tranbang.chop_chop_quiz`
 - Khóa dọc.
-- Điểm cao = số sao cao nhất trong 1 lượt; gửi lên Game Center / Play Games. ID console nằm ở `lib/config/leaderboard_ids.dart`.
+- Home: chế độ **Tổng hợp** + 14 chủ đề. Chỉ Tổng hợp gửi sao lên Game Center / Play Games; chủ đề khác lưu sao local. ID console: `lib/config/leaderboard_ids.dart`.
 - Ảnh store: `store/graphics/` (icon, feature graphic, screenshot Play và App Store 6.7"). Listing: `store/listing.md`.
 
 ## Âm thanh (CC0, miễn phí thương mại)
@@ -21,6 +21,7 @@ flutter run
 - Nhạc menu: *Happy Vibes* — Ruskerdax (OpenGameArt)
 - Nhạc lúc chơi: *Puzzling* — Ruskerdax (OpenGameArt)
 - Hiệu ứng (đúng, sai, tick đồng hồ, bắt đầu, hết giờ…): Kenney Interface Sounds (kenney.nl)
+- Sấm / tia sét Home (`lightning.wav`): tự tổng hợp, dùng tự do
 
 Không bắt buộc ghi công. Tắt/bật nhạc và SFX ở góc màn hình Home và Play.
 
@@ -51,7 +52,7 @@ Ký release: tạo `android/key.properties` trỏ tới keystore (file này khô
 
 ## Thêm câu hỏi
 
-Hiện có **3000 câu** trong `assets/data/questions.json` (14 chủ đề). Thêm object vào `questions` với đúng schema:
+Hiện có **7055 câu** trong `assets/data/questions.json` (14 chủ đề, mỗi chủ đề ≥500). Thêm object vào `questions` với đúng schema:
 `id, topic, difficulty (easy|medium|hard), question, options (4), correct_index, correct_answer, explanation, time_limit_sec`.
 Game tự nhận, không cần sửa code.
 
@@ -59,4 +60,4 @@ Game tự nhận, không cần sửa code.
 
 - 120 giây/lượt; xem Rewarded ở màn hình "Sẵn sàng" (1 lần/lượt) → +5 giây.
 - Độ khó theo số sao: 0–2 chủ yếu Dễ, 3–5 Vừa, 6–8 Vừa/Khó, ≥9 chủ yếu Khó (chỉnh ở `_pickDifficulty` trong `question_repository.dart`).
-- Điểm lên bảng xếp hạng = số sao cao nhất trong 1 lượt.
+- Điểm bảng xếp hạng = số sao cao nhất trong 1 lượt **Tổng hợp** (không tính chế độ chủ đề).

@@ -17,11 +17,12 @@
 **Mô tả đầy đủ:**
 Chớp Chớp Quiz là game đố vui nhanh: bạn có 120 giây, trả lời đúng được +1 sao, trả lời sai số sao quay về 0.
 
-Càng nhiều sao, câu hỏi càng khó — Toán, Địa lý, Khoa học, tiếng Anh, thể thao, chơi chữ và nhiều chủ đề khác. Điểm của bạn là số sao cao nhất trong một lượt.
+Chọn chế độ Tổng hợp để chơi mọi chủ đề và tranh tài bảng xếp hạng, hoặc luyện riêng từng chủ đề (Toán, Địa lý, Khoa học, tiếng Anh, thể thao, chơi chữ…) với sao lưu trên máy. Càng nhiều sao, câu hỏi càng khó.
 
-• 3000 câu hỏi tiếng Việt
+• 7000+ câu hỏi tiếng Việt · 14 chủ đề + Tổng hợp
+• Sao Tổng hợp lên Game Center / Play Games
+• Sao theo chủ đề lưu cục bộ để luyện tập
 • Xem video nhận +5 giây trước khi bắt đầu (1 lần/lượt)
-• Bảng xếp hạng Game Center / Play Games
 • Không cần tài khoản
 
 Nhanh, dễ thương, chơi một mình lúc rảnh.
@@ -39,13 +40,13 @@ Nhanh, dễ thương, chơi một mình lúc rảnh.
 - AdMob Android App ID: `ca-app-pub-8986841471505348~1322961501`
 - AdMob iOS App ID: `ca-app-pub-8986841471505348~9755985297`
 
-## Phát hành 1.0.0 (nháp)
+## Phát hành 1.0.1 (nháp)
 
 **Ghi chú phiên bản:**
 ```
-Chào mừng đến Chớp Chớp Quiz!
+Chơi theo chủ đề!
 
-• 120 giây, đúng +1 sao, sai về 0
-• 3000 câu hỏi, khó dần theo chuỗi sao
-• Nhạc nền và hiệu ứng, bảng xếp hạng
+• Tổng hợp: mọi chủ đề, lên bảng xếp hạng
+• 14 chủ đề luyện riêng, sao lưu trên máy
+• 7000+ câu hỏi, khó dần theo chuỗi sao
 ```

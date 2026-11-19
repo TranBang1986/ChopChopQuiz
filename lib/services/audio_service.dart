@@ -178,6 +178,9 @@ class AudioService with WidgetsBindingObserver {
         gap: const Duration(milliseconds: 180),
       );
 
+  /// Sấm / tia sét nhẹ trên Home (không át nhạc nền).
+  void lightning() => play('lightning.wav', volume: 0.38, gap: const Duration(seconds: 2));
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {

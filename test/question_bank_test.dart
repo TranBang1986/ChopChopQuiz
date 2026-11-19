@@ -5,12 +5,14 @@ import 'package:chop_chop_quiz/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('question bank has 3000 valid items', () {
+  test('question bank is structurally valid', () {
     final data = jsonDecode(File('assets/data/questions.json').readAsStringSync())
         as Map<String, dynamic>;
     final list = data['questions'] as List;
-    expect(list.length, 3000);
-    expect(data['meta']?['total_questions'], 3000);
+    final total = data['meta']?['total_questions'] as int?;
+    expect(list, isNotEmpty);
+    expect(total, isNotNull);
+    expect(list.length, total);
 
     final ids = <String>{};
     for (final raw in list) {
